@@ -1,4 +1,4 @@
-const fs = require('fs');
+const { writeFile, copyFile } = require('./utils/generate-site.js');
 const inquirer = require('inquirer');
 const generatePage = require('./src/page-template.js');
 
@@ -9,9 +9,9 @@ const promptUser = () => {
       name: 'name',
       message: 'What is your name? (Required)',
       validate: nameInput => {
-        if(nameInput){
+        if (nameInput) {
           return true;
-        }else{
+        } else {
           console.log('Please enter your name!');
           return false;
         }
@@ -54,7 +54,7 @@ const promptProject = portfolioData => {
 
   // If there's no 'projects' array property, create one
   if (!portfolioData.projects) {
-  portfolioData.projects = [];
+    portfolioData.projects = [];
   }
   return inquirer.prompt([
     {
@@ -117,7 +117,7 @@ const promptProject = portfolioData => {
   ])
     .then(projectData => {
       portfolioData.projects.push(projectData);
-      if (projectData.confirmAddProject){
+      if (projectData.confirmAddProject) {
         return promptProject(portfolioData);
       } else {
         return portfolioData
@@ -127,13 +127,20 @@ const promptProject = portfolioData => {
 
 
 promptUser()
-.then(promptProject)
-.then(portfolioData => {
-  const pageHTML = generatePage(portfolioData);
-
-  fs.writeFile('./index.html', pageHTML, err => {
-    if (err) throw err;
-  
-    console.log('Portfolio complete! Checkout index.html to see the output!');
+  .then(promptProject)
+  .then(portfolioData => {
+    return generatePage(portfolioData);
+  })
+  .then(pageHTML => {
+    return writeFile(pageHTML);
+  })
+  .then(writeFileResponse => {
+    console.log(writeFileResponse);
+    return copyFile();
+  })
+  .then(copyFileResponse => {
+    console.log(copyFileResponse);
+  })
+  .catch(err => {
+    console.log(err);
   });
-});
